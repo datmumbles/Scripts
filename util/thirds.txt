@@ -1,0 +1,101 @@
+/*=========================================================
+Instant Third-Class Jobs
+by Mumbles
+===========================================================
+Description:
+Allows players to select a free maxed out third-class job
+upon initial login.
+===========================================================
+Compatibility:
+Optimised for Hercules emulators.
+===========================================================
+Changelog:
+v1.0 - First version.
+	1.1 - Fixed typo.
+v2.0 - Optimised for Hercules emulators.
+	2.1 - Compressed script using arrays and dynamic vars.
+	2.2 - A little housekeeping.
+=========================================================*/
+
+-	script	thirds	-1,{
+
+	/*-----------------------------------------------------
+	Function: colour()
+	-------------------------------------------------------
+	Description: Colours the defined string.
+	-------------------------------------------------------
+	Usage:
+	colour("<colour hex>", "<string>");
+	-----------------------------------------------------*/
+	function colour {
+		return "^"+ getarg(0) + getarg(1) +"^000000";
+	}
+	
+	
+	/*-----------------------------------------------------
+	Configuration
+	-----------------------------------------------------*/
+	OnInit:
+		.trans = 1;	// Transcend? 0 = no, 1 = yes (default: 1)
+		
+		// Job names
+		setarray .job_name$, "Rune Knight", "Warlock", "Arch Bishop", "Ranger", "Mechanic", "Guillotine Cross",
+							 "Royal Guard", "Sorcerer", "Sura", "Minstrel/Wanderer", "Genetic", "Shadow Chaser";
+		
+		// Job IDs
+		setarray .job_id,	 Job_Rune_Knight, Job_Warlock, Job_Arch_Bishop, Job_Ranger, Job_Mechanic, Job_Guillotine_Cross,
+							 Job_Royal_Guard, Job_Sorcerer, Job_Sura, Job_Minstrel, Job_Genetic, Job_Shadow_Chaser;
+		
+		// Job IDs (Trans)					 
+		setarray .job_id_t,	 Job_Rune_Knight_T, Job_Warlock_T, Job_Arch_Bishop_T, Job_Ranger_T, Job_Mechanic_T, Job_Guillotine_Cross_T,
+							 Job_Royal_Guard_T, Job_Sorcerer_T, Job_Sura_T, Job_Minstrel_T, Job_Genetic_T, Job_Shadow_Chaser_T;
+		end;
+	
+	
+	/*-----------------------------------------------------
+	Script
+	-----------------------------------------------------*/
+	OnPCLoginEvent:
+		if(auto_third) {
+			end;
+		}
+			
+		while (true) {
+			menu implode(.job_name$, ":"), -;
+			
+			.@index = @menu - 1;
+			
+			switch(select("Confirm - ["+ colour("008800", .job_name$[.@index]) +"]:Change selection:"+ colour("FF0000", "End session"))) {
+				case 1:
+					if (.trans) {
+						jobchange .job_id_t[.@index];
+					} else {
+						jobchange .job_id[.@index];
+					}
+					
+					/*-----------------------------------------------------
+					Job Change Settings
+					-----------------------------------------------------*/
+					BaseLevel = 150;	// Max base level
+					JobLevel = 70;		// Max job level
+					
+					skill NV_BASIC, 9, 0;	// Level 9 Basic Skill
+					SkillPoint = 187;		// 49 First, 69 Trans, 69 Third
+					/*---------------------------------------------------*/
+					
+					if (.trans) {
+						StatusPoint += 100;
+					}
+					
+					auto_third = 1;
+					close;
+				
+				case 2:
+					break;
+					
+				case 3:
+					close;
+			}
+		}
+		
+}
