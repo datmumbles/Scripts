@@ -123,7 +123,7 @@ prontera,164,169,3	script	Donation Manager::points2item	4_M_OPERATION,{
 	OnInit:
 		.npc_name$ = "[^0000FFDonation Manager^000000]";
 		.rate = 20;		// Exchange rate (1 point * rate = total PoDs)
-		.pod_id = 7179;	// Proof of Donation item ID
+		.pod_id = Donation_Card;	// Proof of Donation item ID or constant
 		.pod_name$ = getitemname(.pod_id) +"(s)";	// Proof of Donation item name
 		.points_name$ = "Cash Point(s)";			// Points name
 		.points_var$ = "#CASHPOINTS";				// Points variable
