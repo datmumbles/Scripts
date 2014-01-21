@@ -1,0 +1,168 @@
+/*=========================================================
+Account Remover
+by Mumbles
+===========================================================
+Idea: http://goo.gl/UKE0ii
+===========================================================
+Description:
+Allows for a (mostly) clean removal of accounts and regular
+character data via '@removeacc'. Rejects accounts that are
+currently online and prevents deletion of system accounts
+by default. See configuration for additional options.
+===========================================================
+Compatibility:
+Optimised for Hercules emulators.
+===========================================================
+Changelog:
+v1.0 - First version.
+	1.1 - Updated for compatibility with 82b583b.
+	1.2 - A little housekeeping.
+=========================================================*/
+
+-	script	removeacc	-1,{
+
+	/*-----------------------------------------------------
+	Function: getcharname()
+	-------------------------------------------------------
+	Description: Return the character name of the sent ID.
+	-------------------------------------------------------
+	Usage:
+	getcharname(<char_id>);
+	-----------------------------------------------------*/
+	function getcharname {
+		query_sql("SELECT `name` FROM `char` WHERE `char_id` = '"+ getarg(0) +"'", .@query_name$);
+		return .@query_name$;
+	}
+	
+	
+	/*-----------------------------------------------------
+	Configuration
+	-----------------------------------------------------*/
+	OnInit:
+		.npc_name$ = "[^008800Account Remover^000000]";
+		.min_id = 2000000;	// The minimum ID allowed for removal
+		
+		// Create @removeacc command
+		bindatcmd "removeacc", strnpcinfo(3) +"::OnCommand", 99, 99;
+		end;
+		
+	
+	/*-----------------------------------------------------
+	Script
+	-----------------------------------------------------*/
+	OnCommand:
+		mes .npc_name$;
+		mes "Hello there!";
+		mes "What would you like to do?";
+		next;
+		
+		menu "Remove an account:Nothing", -;
+		
+		mes .npc_name$;
+		switch (@menu) {
+			case 1:
+				mes "Please input the ID of the account you would like to remove.";
+				next;
+				
+				input .@account_id;
+				
+				while (true) {
+					mes .npc_name$;
+					
+					
+					// Verify account ID
+					if (!query_sql("SELECT `account_id` FROM `login` WHERE `account_id` = '"+ .@account_id +"'", .@account_found)) {
+						mes "Sorry, but that account does not exist.";
+						break;
+					}
+					
+					// Verify authorisation
+					if (.@account_id < .min_id) {
+						mes "You are not authorised to remove this account.";
+						break;
+					}
+					
+					mes "Please confirm that you would like to remove the account with the ID ^0000FF"+ .@account_id +"^000000.";
+					next;
+					
+					menu "View list of characters:Change account:^FF0000Confirm removal^000000", -;
+					
+					mes .npc_name$;
+					switch (@menu) {
+						case 1:	// View list of characters
+							if (query_sql("SELECT `char_id` FROM `char` WHERE `account_id` = '"+ .@account_id +"' ORDER BY `name` ASC", .@char_id[0])) {
+								mes "List of characters:";
+								
+								for (.@i = 0; .@i < getarraysize(.@char_id); .@i++) {
+									mes "- ^0000FF"+ getcharname(.@char_id[.@i]) +"^000000";
+								}
+								
+							} else {
+								mes "There are no characters on this account.";
+							}
+							
+							next;
+							break;
+							
+						case 2:	// Change account
+							mes "Please input the ID of the account you would like to remove.";
+							next;
+							
+							input .@account_id;
+							break;
+						
+						case 3:	// Confirm removal
+							if (isloggedin(.@account_id)) {
+								mes "All characters from this account must be offline before proceeding.";
+								next;
+								
+								break;
+							}
+							
+							// Delete account data
+							query_sql "DELETE FROM `acc_reg_num_db` WHERE `account_id` = '"+ .@account_id +"'";
+							query_sql "DELETE FROM `acc_reg_str_db` WHERE `account_id` = '"+ .@account_id +"'";
+							query_sql "DELETE FROM `account_data` WHERE `account_id` = '"+ .@account_id +"'";
+							query_sql "DELETE FROM `friends` WHERE `friend_account` = '"+ .@account_id +"'";
+							query_sql "DELETE FROM `guild_expulsion` WHERE `account_id` = '"+ .@account_id +"'";
+							query_sql "DELETE FROM `guild_member` WHERE `account_id` = '"+ .@account_id +"'";
+							query_sql "DELETE FROM `login` WHERE `account_id` = '"+ .@account_id +"'";
+							query_sql "DELETE FROM `party` WHERE `leader_id` = '"+ .@account_id +"'";
+							query_sql "DELETE FROM `pet` WHERE `account_id` = '"+ .@account_id +"'";
+							query_sql "DELETE FROM `sc_data` WHERE `account_id` = '"+ .@account_id +"'";
+							query_sql "DELETE FROM `storage` WHERE `account_id` = '"+ .@account_id +"'";
+							
+							// Delete character data
+							for (.@i = 0; .@i < getarraysize(.@char_id); .@i++) {
+								query_sql "DELETE FROM `char_reg_num_db` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+								query_sql "DELETE FROM `char_reg_str_db` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+								query_sql "DELETE FROM `cart_inventory` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+								query_sql "DELETE FROM `char` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+								query_sql "DELETE FROM `friends` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+								query_sql "DELETE FROM `guild` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+								query_sql "DELETE FROM `homunculus` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+								query_sql "DELETE FROM `hotkey` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+								query_sql "DELETE FROM `inventory` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+								query_sql "DELETE FROM `mail` WHERE `dest_name` = '"+ getcharname(.@char_id[.@i]) +"'";
+								query_sql "DELETE FROM `mail` WHERE `send_name` = '"+ getcharname(.@char_id[.@i]) +"'";
+								query_sql "DELETE FROM `memo` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+								query_sql "DELETE FROM `mercenary` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+								query_sql "DELETE FROM `mercenary_owner` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+								query_sql "DELETE FROM `quest` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+								query_sql "DELETE FROM `skill` WHERE `char_id` = '"+ .@char_id[.@i] +"'";
+							}
+							
+							mes "The account ^0000FF"+ .@account_id +"^000000 was successfully removed.";
+							close;
+					}
+				}
+				break;
+				
+			case 2:
+				mes "Okay, see you around, then!";
+				break;
+		}
+		
+		close;
+	
+}
