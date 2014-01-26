@@ -1,0 +1,39 @@
+/*=========================================================
+Mumble Test
+by Mumbles
+===========================================================
+Function: http://goo.gl/oYURZu
+===========================================================
+Description:
+Sample script for mumble() function.
+===========================================================
+Compatibility:
+Optimised for Hercules emulators using mumble() function.
+===========================================================
+Changelog:
+v1.0 - First version.
+=========================================================*/
+
+-	script	mumble_test	-1,{
+
+	/*-----------------------------------------------------
+	Configuration
+	-----------------------------------------------------*/
+	OnInit:
+		bindatcmd "mumble", strnpcinfo(3) +"::OnCommand";
+		end;
+		
+		
+	/*-----------------------------------------------------
+	Script
+	-----------------------------------------------------*/
+	OnCommand:
+		if (!mumble()) {
+			message strcharinfo(0), "You failed to submit the proper code.";
+		} else {
+			message strcharinfo(0), "The code was submitted correctly!";
+		}
+		
+		end;
+
+}
