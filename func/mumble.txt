@@ -1,0 +1,50 @@
+/*-----------------------------------------------------
+Function: mumble()
+-------------------------------------------------------
+Description:
+Requests input of randomized string from user. Returns 
+true on success and false on failure. Four difficulty 
+levels are available; each level inherits the previous 
+one(s).
+-------------------------------------------------------
+Usage: mumble()
+-----------------------------------------------------*/
+function	script	mumble	{
+	
+	/*-----------------------------------------------------
+	Configuration
+	-----------------------------------------------------*/
+	// Mumble difficulty (1 = lowercase, 2 = uppercase, 3 = numbers, 4 = symbols)
+	.@difficulty = 3;
+	
+	// Mumble size
+	.@size = 8;
+	
+	// Characters to use (separated by spaces)
+	setarray .@string$[0], 	"a b c d e f g h i j k l m n o p q r s t u v w x y z ",
+							"A B C D E F G H I J K L M N O P Q R S T U V W X Y Z ",
+							"0 1 2 3 4 5 6 7 8 9 ",
+							"` ~ ! @ # $ % ^ & * ( ) - = _ + ~ , . < > [ ] { } : ; ' \" \\";
+	
+	
+	/*-----------------------------------------------------
+	Script
+	-----------------------------------------------------*/
+	// Adjust difficulty
+	deletearray .@string$[.@difficulty], getarraysize(.@string$) - .@difficulty;
+	
+	// Generate array
+	explode(.@chars$, implode(.@string$), " ");
+	
+	// Generate Mumble
+	for (.@i = 0; .@i < .@size; .@i++) {
+		.@mumble$ += .@chars$[rand(getarraysize(.@chars$))];
+	}
+	
+	// Prompt user for input
+	message strcharinfo(0), "Please enter the following code to proceed: "+ .@mumble$;
+	input .@submission$;
+	
+	return (.@mumble$ != .@submission$ ? false : true);
+
+}
