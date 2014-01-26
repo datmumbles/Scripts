@@ -15,6 +15,7 @@ v1.0 - First version.
 v2.0 - Optimised for Hercules emulators.
 	2.1 - Compressed script using arrays and dynamic vars.
 	2.2 - A little housekeeping.
+		2.2.1 - Minor change to jobchange method.
 =========================================================*/
 
 -	script	thirds	-1,{
@@ -67,11 +68,7 @@ v2.0 - Optimised for Hercules emulators.
 			
 			switch(select("Confirm - ["+ colour("008800", .job_name$[.@index]) +"]:Change selection:"+ colour("FF0000", "End session"))) {
 				case 1:
-					if (.trans) {
-						jobchange .job_id_t[.@index];
-					} else {
-						jobchange .job_id[.@index];
-					}
+					jobchange (.trans ? .job_id_t[.@index] : .job_id[.@index]);
 					
 					/*-----------------------------------------------------
 					Job Change Settings
