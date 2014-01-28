@@ -16,6 +16,7 @@ v2.0 - Optimised for Hercules emulators.
 	2.1 - Compressed script using arrays and dynamic vars.
 	2.2 - A little housekeeping.
 		2.2.1 - Minor change to jobchange method.
+		2.2.2 - Fixed issue with arrays.
 =========================================================*/
 
 -	script	thirds	-1,{
@@ -40,16 +41,16 @@ v2.0 - Optimised for Hercules emulators.
 		.trans = 1;	// Transcend? 0 = no, 1 = yes (default: 1)
 		
 		// Job names
-		setarray .job_name$, "Rune Knight", "Warlock", "Arch Bishop", "Ranger", "Mechanic", "Guillotine Cross",
-							 "Royal Guard", "Sorcerer", "Sura", "Minstrel/Wanderer", "Genetic", "Shadow Chaser";
+		setarray .job_name$[0],	"Rune Knight", "Warlock", "Arch Bishop", "Ranger", "Mechanic", "Guillotine Cross",
+								"Royal Guard", "Sorcerer", "Sura", "Minstrel/Wanderer", "Genetic", "Shadow Chaser";
 		
 		// Job IDs
-		setarray .job_id,	 Job_Rune_Knight, Job_Warlock, Job_Arch_Bishop, Job_Ranger, Job_Mechanic, Job_Guillotine_Cross,
-							 Job_Royal_Guard, Job_Sorcerer, Job_Sura, Job_Minstrel, Job_Genetic, Job_Shadow_Chaser;
+		setarray .job_id[0],	Job_Rune_Knight, Job_Warlock, Job_Arch_Bishop, Job_Ranger, Job_Mechanic, Job_Guillotine_Cross,
+								Job_Royal_Guard, Job_Sorcerer, Job_Sura, Job_Minstrel, Job_Genetic, Job_Shadow_Chaser;
 		
 		// Job IDs (Trans)					 
-		setarray .job_id_t,	 Job_Rune_Knight_T, Job_Warlock_T, Job_Arch_Bishop_T, Job_Ranger_T, Job_Mechanic_T, Job_Guillotine_Cross_T,
-							 Job_Royal_Guard_T, Job_Sorcerer_T, Job_Sura_T, Job_Minstrel_T, Job_Genetic_T, Job_Shadow_Chaser_T;
+		setarray .job_id_t[0],	Job_Rune_Knight_T, Job_Warlock_T, Job_Arch_Bishop_T, Job_Ranger_T, Job_Mechanic_T, Job_Guillotine_Cross_T,
+								Job_Royal_Guard_T, Job_Sorcerer_T, Job_Sura_T, Job_Minstrel_T, Job_Genetic_T, Job_Shadow_Chaser_T;
 		end;
 	
 	
