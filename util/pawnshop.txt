@@ -40,6 +40,7 @@ Optimised for Hercules emulators.
 ===========================================================
 Changelog:
 v1.0 - First version.
+	v1.0.1 - Removed support for backwards compatibility.
 =========================================================*/
 
 prontera,150,150,5	script	Pawn Shop#prt::pawnshop	1_M_MERCHANT,{
@@ -51,6 +52,7 @@ prontera,150,150,5	script	Pawn Shop#prt::pawnshop	1_M_MERCHANT,{
 	function getcollateralname;
 	function getdeadline;
 	function clearloaninfo;
+	
 	
 	while (true) {
 		// NPC Dialogue
@@ -387,9 +389,6 @@ prontera,150,150,5	script	Pawn Shop#prt::pawnshop	1_M_MERCHANT,{
 		return;
 	}
 	
-	OnWhisperGlobal:
-		// Whisper anything to initialize settings
-		message strcharinfo(0), strnpcinfo(1) +" : 'OnInit' label has been intialized.";
 
 	OnInit:
 		// Configuration
