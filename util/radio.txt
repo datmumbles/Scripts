@@ -1,0 +1,122 @@
+/*=========================================================
+Hercules Radio
+by Mumbles
+===========================================================
+Request: http://hercules.ws/board/topic/1676-rhelp/
+===========================================================
+Description:
+A radio NPC that plays preset selection of client-side
+songs (these songs are to be placed in the 'BGM' folder.
+
+The command '@radio' was added as a convenience, to allow
+songs to be played wherever the invoking player may be.
+Songs are played on the map in which the NPC was invoked,
+meaning that if a player is in pay_gld and types '@radio',
+(s)he and everyone on the map will hear the selected song.
+
+Each time a song is played, a lock is set for the preset
+minutes; this lock prevents the NPC from being accessed.
+A countdown in minutes and seconds is be displayed to
+reflect the remaining time until the next song can be
+played.
+===========================================================
+Compatibility:
+Optimised for Hercules emulators.
+===========================================================
+Changelog:
+v1.0 - First version.
+	v1.0.1 - Removed support for backwards compatibility.
+	v1.0.2 - Some housekeeping.
+=========================================================*/
+
+prontera,138,172,5	script	Hercules Radio::radio	4_F_05,{
+
+	OnRequest:
+		// Check voucher amount
+		if (countitem(.voucher) < .amount) {
+			message strcharinfo(0), "You must have "+ .amount +" "+ getitemname(.voucher) +" to play a song.";
+			end;
+		}
+		
+		// Create menu
+		for (.@i = 0; .@i < getarraysize(.song$); .@i++) {
+			.@choice$ += "'"+ .song$[.@i] +"' by "+ .artist$[.@i] +":";
+		}
+		
+		// Display menu
+		message strcharinfo(0), "Please select a song to play (cost: "+ .amount +" "+ getitemname(.voucher) +").";
+		.@option = select(.@choice$) - 1;
+		
+		// Check lock time
+		if (.lock > gettimetick(2)) {
+			// Calculate time left
+			.@minutes_left = (.lock - gettimetick(2)) / 60;
+			.@seconds_left = (.lock - gettimetick(2)) % 60;
+			
+			// Display time left
+			message strcharinfo(0), strnpcinfo(1) +" is not accepting requests at this time.";
+			if (.@minutes_left < 1) {
+				message strcharinfo(0), "Please try again in "+ .@seconds_left +" seconds.";
+			} else {
+				message strcharinfo(0), "Please try again in "+ .@minutes_left +" minute"+ (.@minutes_left > 1 ? "s" : "") +" and "+ .@seconds_left +" seconds.";
+			}
+
+			close;
+		}
+		
+		// Delete required vouchers
+		delitem .voucher, .amount;
+		
+		// Play and announce choice on the player's current map
+		playbgmall .file$[.@option], strcharinfo(3);
+		announce strnpcinfo(1) +": Now playing '"+ .song$[.@option] +"' by "+ .artist$[.@option] +".", bc_map;
+		
+		// Lock NPC for preset amount
+		.lock = .minutes * 60;
+		.lock += gettimetick(2);
+		close;
+		
+		
+	OnInit:
+		// Configuration
+		.voucher = TCG_Card;	// Voucher item ID
+		.amount	= 5;			// Usage cost, in vouchers
+		.minutes = 2;			// Lock time, in minutes
+		
+		// Create @radio command
+		bindatcmd "radio", strnpcinfo(3) +"::OnRequest", 0, 40;
+		
+		// Songs
+		// The song names for each track
+		setarray .song$[0],		"Hunter X Hunter",
+								"Chicksilog",
+								"Bahay Kubo",
+								"Magkabilang Mundo",
+								"Iisa lang",
+								"I Love You Girl";
+								
+		// Artists
+		// The artist name for each track
+		setarray .artist$[0],	"Ohayou",
+								"Kamikazee",
+								"Hale",
+								"Jireh Lim",
+								"Parokya Ni Edgar",
+								"Ekulo";
+								
+		// Files
+		// The file name for each track (no extension)
+		setarray .file$[0],	"1001",
+							"1002",
+							"1003",
+							"1004",
+							"1005",
+							"1006";
+		
+		// Waitingroom display
+		// Configured to show the NPC's display name
+		waitingroom strnpcinfo(1), 0;
+	
+	end;
+		
+}
