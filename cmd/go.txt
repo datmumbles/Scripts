@@ -19,6 +19,17 @@ all instances of '@go_delay' with 'go_delay'.
 ===========================================================
 Compatibility:
 Optimised for Hercules emulators.
+===========================================================
+Changelog:
+v1.0 - First version. [jTynne]
+v2.0 - Added additional parameters for locations. [jTynne]
+v3.0 - Optimised for Hercules emulators. [Mumbles]
+	v3.0.1 - Introduced limitless aliasing. [Mumbles]
+	v3.0.2 - Added go() function. [Mumbles]
+v3.1 - Added option to charge per use. [Mumbles]
+	v3.1.1 - Added option to limit use when dead. [Mumbles]
+	v3.1.2 - Added option to limit use to towns. [Mumbles]
+	v3.1.3 - Added changelog. [Mumbles]
 =========================================================*/
 
 -	script	at_go	-1,{
@@ -31,8 +42,9 @@ Optimised for Hercules emulators.
 		.cost = 10000;	// Default cost to use command if '.charge' is enabled
 		.charge = 0;	// Charge to use command? 0 = no, 1 = yes (default: 0)
 		.deadlock = 0;	// Prevent usage when dead? 0 = no, 1 = yes (default: 0)
+		.town = 0;		// Require 'mf_town'? 0 = no, 1 = yes (default: 0)
 		
-		bindatcmd("go", strnpcinfo(3) +"::OnAtcommand", 0, 2);
+		bindatcmd "go", strnpcinfo(3) +"::OnAtcommand", 0, 2;
 		end;
 		
 		
@@ -47,6 +59,8 @@ Optimised for Hercules emulators.
 	function go {
 		if (.deadlock && !Hp) {
 			message strcharinfo(0), "You may not use @go when you are dead.";
+		} else if (.town && !getmapflag(strcharinfo(3), mf_town)) {
+			message strcharinfo(0), "You may only use @go in towns.";
 		} else if (.delay && @go_delay > gettimetick(2)) {
 			message strcharinfo(0), "You must wait "+ (@go_delay - gettimetick(2))  +" seconds before warping again.";
 		} else if (BaseLevel < getarg(3)) {
