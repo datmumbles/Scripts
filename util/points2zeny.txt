@@ -11,6 +11,10 @@ configured easily below the 'OnInit' label.
 ===========================================================
 Compatibility:
 Optimised for Hercules emulators.
+===========================================================
+Changelog:
+v1.0 - First version.
+	v1.0.1 - Added changelog.
 =========================================================*/
 
 prontera,147,159,5	script	Points Exchanger::points2zeny	4_F_KHELLY,{

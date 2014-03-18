@@ -11,6 +11,10 @@ Exchanges items for points and vice-versa at a fixed rate.
 ===========================================================
 Compatibility:
 Optimised for Hercules emulators.
+===========================================================
+Changelog:
+v1.0 - First version.
+	v1.0.1 - Added changelog.
 =========================================================*/
 
 prontera,164,169,3	script	Donation Manager::points2item	4_M_OPERATION,{
