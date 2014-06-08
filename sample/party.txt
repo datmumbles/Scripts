@@ -1,0 +1,194 @@
+/*=========================================================
+Partyscript Debugger
+by Mumbles
+===========================================================
+Description:
+Debug utility for Mhalicot's partyscript plugin. Accessible
+via '@modparty' or '@mp'.
+===========================================================
+Compatibility:
+Optimised for Hercules emulators using partyscript for HPM.
+===========================================================
+Changelog:
+v1.0 - First version.
+=========================================================*/
+
+-	script	modparty	-1,{
+
+	/*-----------------------------------------------------
+	Configuration
+	-----------------------------------------------------*/
+	OnInit:
+		setarray .menu_options$[0],	"Create party",
+									"Add member",
+									"Kick member",
+									"Appoint leader",
+									"Change options",
+									"Disband party";
+									
+		setarray .party_options$[0],	"EXP Sharing",
+										"Pickup Sharing",
+										"Item Distribution";
+									
+		setarray .party_choices$[0],	"Off",
+										"On";
+	
+		bindatcmd "modparty", strnpcinfo(3) +"::OnCommand", 0, 0;
+		bindatcmd "mp", strnpcinfo(3) +"::OnCommand", 0, 0;
+		end;
+	
+	
+	/*-----------------------------------------------------
+	Script
+	-----------------------------------------------------*/
+	OnCommand:
+		while (true) {
+			if (getcharid(1) && getpartyleader(getcharid(1), 2) != getcharid(0)) {
+				message strcharinfo(0), "You are not the party leader.";
+				message strcharinfo(0), "@modparty failed.";
+				close;
+			} else {
+				switch (select(implode(.menu_options$, ":"))) {
+					case 1:	// Create party
+						if (getcharid(1)) {
+							message strcharinfo(0), "You already have a party.";
+						} else {
+							message strcharinfo(0), "Enter your desired party name.";
+							input .@party_name$;
+							
+							// Check for existing party name
+							query_sql "SELECT `name` FROM `party` WHERE `name` = '"+ .@party_name$ +"'", .@name_exists$;
+							if (.@party_name$ == .@name_exists$) {
+								message strcharinfo(0), "That party name already exists.";
+								break;
+							}
+							
+							party_create .@party_name$;
+							sleep2 1;
+							message strcharinfo(0), "Creating party '"+ getpartyname(getcharid(1)) +"' ("+ getcharid(1) +").";
+							break;
+						}
+						
+						break;
+						
+					case 2:	// Add member
+						if (!getcharid(1)) {
+							message strcharinfo(0), "You do not have a party.";
+						} else {
+							message strcharinfo(0), "Enter the name of the player you would like to add to your party.";
+							input .@player_name$;
+							
+							// Check for existing target player/party
+							if (getcharid(1, .@player_name$)) {
+								message strcharinfo(0), "'"+ .@player_name$ +"' is already in a party.";
+							} else if (!getcharid(0, .@player_name$)) {
+								message strcharinfo(0), "'"+ .@player_name$ +"' is not online or does not exist.";
+							} else {
+								message strcharinfo(0), "Adding '"+ .@player_name$ +"' ("+ getcharid(0, .@player_name$) +") to '"+ getpartyname(getcharid(1)) +"' ("+ getcharid(1) +").";
+								message .@player_name$, "You have been added to the party '"+ getpartyname(getcharid(1)) +"'.";
+								party_addmember getcharid(1), getcharid(0, .@player_name$);
+								break;
+							}
+						}
+						
+						break;
+						
+					case 3:	// Kick member
+						if (!getcharid(1)) {
+							message strcharinfo(0), "You do not have a party.";
+						} else {
+							getpartymember getcharid(1), 0;	// Retrieve character names
+							getpartymember getcharid(1), 1;	// Retrieve character IDs
+							
+							// Copy party data
+							.@party_size = $@partymembercount;
+							for (.@i = 0; .@i < .@party_size; .@i++) {
+								.@party_member$[.@i] = $@partymembername$[.@i];
+								.@party_member_id[.@i] = $@partymembercid[.@i];
+							}
+						
+							message strcharinfo(0), "Select a player to kick from your party.";
+							menu implode(.@party_member$, ":"), -;
+							@menu--;
+							
+							message strcharinfo(0), "Kicking '"+ .@party_member$[@menu] +"' ("+ .@party_member_id[@menu] +") from '"+ getpartyname(getcharid(1)) +"' ("+ getcharid(1) +").";
+							message .@party_member$[@menu], "You have been kicked from the party '"+ getpartyname(getcharid(1)) +"'.";
+							party_delmember .@party_member_id[@menu];
+							break;
+						}
+						
+						break;
+						
+					case 4:	// Appoint leader
+						if (!getcharid(1)) {
+							message strcharinfo(0), "You do not have a party.";
+						} else {
+							getpartymember getcharid(1), 0;	// Retrieve character names
+							getpartymember getcharid(1), 1;	// Retrieve character IDs
+							
+							// Copy party data
+							.@party_size = $@partymembercount;
+							for (.@i = 0; .@i < .@party_size; .@i++) {
+								.@party_member$[.@i] = $@partymembername$[.@i];
+								.@party_member_id[.@i] = $@partymembercid[.@i];
+							}
+						
+							message strcharinfo(0), "Select a player to appoint as leader of your party.";
+							menu implode(.@party_member$, ":"), -;
+							@menu--;
+							
+							message strcharinfo(0), "Appointing '"+ .@party_member$[@menu] +"' ("+ .@party_member_id[@menu] +") as leader of the party '"+ getpartyname(getcharid(1)) +"' ("+ getcharid(1) +").";
+							message .@party_member$[@menu], "You have been appointed as leader of the party '"+ getpartyname(getcharid(1)) +"'.";
+							party_changeleader getcharid(1), .@party_member_id[@menu];
+							close;
+						}
+						
+						break;
+						
+					case 5:	// Change options
+						if (!getcharid(1)) {
+							message strcharinfo(0), "You do not have a party.";
+						} else {
+							message strcharinfo(0), "Select a party option to change.";
+							menu implode(.party_options$, ":"), -;
+							.@option = --@menu;
+							
+							message strcharinfo(0), "Choose whether to turn "+ .party_options$[.@option] +" on or off.";
+							menu implode(.party_choices$, ":"), -;
+							@menu--;
+							
+							message strcharinfo(0), "Turning "+ .party_options$[.@option] +" for '"+ getpartyname(getcharid(1)) +"' ("+ getcharid(1) +") "+ strtolower(.party_choices$[@menu]) +".";
+							party_changeoption getcharid(1), .@option, @menu;
+							break;
+						}
+						
+						break;
+						
+					case 6:	// Disband party
+						if (!getcharid(1)) {
+							message strcharinfo(0), "You do not have a party.";
+						} else {
+							getpartymember getcharid(1), 0;	// Retrieve character names
+							
+							// Copy party data
+							.@party_size = $@partymembercount;
+							for (.@i = 0; .@i < .@party_size; .@i++) {
+								.@party_member$[.@i] = $@partymembername$[.@i];
+							}
+							
+							message strcharinfo(0), "Disbanding party '"+ getpartyname(getcharid(1)) +"' ("+ getcharid(1) +").";
+							
+							for (.@i = 0; .@i < .@party_size; .@i++) {
+								message .@party_member$[.@i], "The party '"+ getpartyname(getcharid(1)) +"' has been disbanded.";
+							}
+							
+							party_destroy getcharid(1);
+							break;
+						}
+						
+						break;
+				}
+			}
+		}
+
+}
