@@ -1,0 +1,70 @@
+/*=========================================================
+@debuff command
+by Mumbles
+===========================================================
+Idea: http://goo.gl/wzZ7u4
+===========================================================
+Description:
+Debuffs all players on the invoker's current map.
+===========================================================
+Compatibility:
+Optimised for Hercules emulators.
+===========================================================
+Changelog:
+v1.0 - First version.
+=========================================================*/
+
+-	script	debuff	-1,{
+
+	/*-----------------------------------------------------
+	Configuration
+	-----------------------------------------------------*/
+	OnInit:
+		bindatcmd "debuff", strnpcinfo(3) +"::OnAtcommand", 1, 1;
+		end;
+		
+		
+	/*-----------------------------------------------------
+	Script
+	-----------------------------------------------------*/
+	OnAtcommand:
+		// Set invoking ID, map name, and char name
+		.@start_id = getcharid(3);
+		.@map_name$ = strcharinfo(3);
+		.@char_name$ = strcharinfo(0);
+		
+		// Fill array with online players' account IDs (RIDs)
+		query_sql "SELECT `account_id` FROM `char` WHERE `online` = '1'", .@account_id;
+		
+		// Loop through all player RIDs
+		for (.@i = 0; .@i < getarraysize(.@account_id); .@i++) {
+			// Check if invoking RID was selected
+			if (.@account_id[.@i] != .@start_id) {
+				// Attach selected RID
+				attachrid .@account_id[.@i];
+				
+				// Check if selected RID is on map
+				if (.@map_name$ == strcharinfo(3)) {
+					// Reward selected RID and increment counter
+					message strcharinfo(0), "You have been debuffed.";
+					sc_end SC_ALL;
+					.@j++;
+				}
+				
+				// Detach selected RID
+				detachrid;
+			}
+		}
+			
+		// No players were debuffed
+		if (!.@j) {
+			message .@char_name$, "There are no other players on this map.";
+			
+		// Display confirmation message
+		} else {
+			message .@char_name$, .@j +" "+ (.@j > 1 ? "players were" : "player was") +" debuffed.";
+		}
+		
+		end;
+		
+}
