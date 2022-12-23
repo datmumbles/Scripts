@@ -1,0 +1,142 @@
+/*=========================================================
+Points to Item Exchanger
+by Mumbles
+===========================================================
+Request: https://shorturl.at/cnsy3
+===========================================================
+Description:
+Exchanges items for points and vice-versa at a fixed rate.
+===========================================================
+Compatibility:
+Optimised for Hercules emulators.
+===========================================================
+Changelog:
+v1.0 - First version.
+	v1.0.1 - Added changelog.
+v1.0a - Alternate version; uses PoDs instead of points for 
+base-1 when converting.
+=========================================================*/
+
+prontera,164,169,3	script	Donation Manager::points2item	4_M_OPERATION,{
+	
+	/*-----------------------------------------------------
+	Script
+	-----------------------------------------------------*/
+	mes .npc_name$;
+	mes "Hello there, ^FF8800"+ strcharinfo(0) +"^000000! "+
+		"Would you exchange your "+ .points_name$ +" "+
+		"for "+ .pod_name$ +"?";
+	mes " ";
+	mes "Exchange Rate: "+ .rate +":1";
+	mes .points_name$ +": [^FF0000"+ getd(.points_var$) +"^000000]";
+	next;
+	
+	switch (select(implode(.menu_options$, ":"))) {
+		case 1:
+			mes .npc_name$;
+			mes "Okay, come back if you change your mind!";
+			break;
+			
+		case 2:
+			mes .npc_name$;
+			mes "Please enter the amount of "+ .points_name$ +" that you want to exchange.";
+		
+			do {
+				mes " ";
+				mes "Input ^0000FF0^000000 to cancel.";
+				next;
+				
+				input .@amount;
+				.@total = .@amount / .rate;
+				.@remainder = .@amount % .rate;
+				
+				// Check break input
+				if (!.@amount) {
+					message strcharinfo(0), strnpcinfo(1) +" : Exchange terminated.";
+					close;
+				}
+				
+				// Check amount against points
+				if (getd(.points_var$) < .@amount) {
+					mes .npc_name$;
+					mes "^FF0000Please enter a valid amount.^000000";
+				}
+					
+				// Check remainder [loss prevention]
+				else if (.@remainder) {
+					mes .npc_name$;
+					mes "Sorry, but you must exchange multiples of "+ .rate +".";
+				}
+			} while (getd(.points_var$) < .@amount || .@remainder);
+			
+			// Check weight
+			if (!checkweight(.pod_id, .@total)) {
+				mes .npc_name$;
+				mes "^FF0000You're overweight; please store some items.^000000";
+				break;
+			}
+			
+			setd .points_var$, getd(.points_var$) - .@amount;
+			getitem .pod_id, .@total;
+			
+			mes .npc_name$;
+			mes "You've exchanged "+ .@amount +" "+ .points_name$ +" for "+ .@total +" "+ .pod_name$ +". "+
+				"You now have "+ getd(.points_var$) +" "+ .points_name$ +" and "+ countitem(.pod_id) +" "+ .pod_name$ +".";
+			break;
+			
+		case 3:
+			mes .npc_name$;
+			mes "Please enter the amount of "+ .pod_name$ +" you want to exchange.";
+			
+			do {
+				mes " ";
+				mes "Input ^0000FF0^000000 to cancel.";
+				next;
+				
+				input .@amount;
+				.@total = .@amount * .rate;
+				
+				// Check break input
+				if (!.@amount) {
+					message strcharinfo(0), strnpcinfo(1) +" : Exchange terminated.";
+					close;
+				}
+				
+				// Check total against inventory
+				if (countitem(.pod_id) < .@amount) {
+					mes .npc_name$;
+					mes "^FF0000Please enter a valid amount.^000000";
+				}
+			} while (countitem(.pod_id) < .@amount);
+			
+			delitem .pod_id, .@amount;
+			setd .points_var$, getd(.points_var$) + .@total;
+			
+			mes .npc_name$;
+			mes "You've exchanged "+ .@amount +" "+ .pod_name$ +" for "+ .@total +" "+ .points_name$ +". "+
+				"You now have "+ getd(.points_var$) +" "+ .points_name$ +" and "+ countitem(.pod_id) +" "+ .pod_name$ +".";
+			break;
+		}
+		
+		close;
+	
+	
+	/*-----------------------------------------------------
+	Configuration
+	-----------------------------------------------------*/
+	OnInit:
+		.npc_name$ = "[^0000FFDonation Manager^000000]";
+		.rate = 10;		// Exchange rate (1 point * rate = 1 PoD)
+		.pod_id = Donation_Card;	// Proof of Donation item ID or constant
+		.pod_name$ = getitemname(.pod_id) +"(s)";	// Proof of Donation item name
+		.points_name$ = "Cash Point(s)";			// Points name
+		.points_var$ = "#CASHPOINTS";				// Points variable
+		
+		// Modifying these options requires updates to the corresponding case
+		setarray .menu_options$[0],	"^FF0000>^000000 Cancel",
+									"^0000FF>^000000 Exchange "+ .points_name$ +" for "+ .pod_name$,
+									"^0000FF>^000000 Exchange "+ .pod_name$ +" for "+ .points_name$;
+		
+		end;
+	
+}
